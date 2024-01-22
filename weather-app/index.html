@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Weather App</title>
+  </head>
+  <body>
+    <div class="bg-[#a8b2fc] h-screen w-screen">
+      <div class="flex flex-col items-center justify-center w-screen h-screen">
+        <div>
+          <input
+            type="text"
+            class="rounded"
+            placeholder="Enter your city name :3"
+            id="cityInput"
+          />
+          <button onclick="getWeatherData()">Click</button>
+        </div>
+        <h1 id="city">City</h1>
+        <img class="h-40 w-40" id="icon" />
+        <div class="flex text-sm">
+          <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+            <h3>Temperature</h3>
+            <p class="text-center" id="temperature">40</p>
+          </section>
+          <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+            <h3>Description</h3>
+            <p class="text-center" id="description">40</p>
+          </section>
+          <button class="h-20 w-20 mt-2 ml-2 rounded-xl" id="showMore">
+            Show more
+          </button>
+          <div class="flex hidden" id="moreInfo">
+            <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+              <h3>Coordinates</h3>
+              <p class="text-center" id="coordinates">40</p>
+            </section>
+            <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+              <h3>Feels Like</h3>
+              <p class="text-center" id="feelsLike">40</p>
+            </section>
+
+            <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+              <p class="text-center" id="humidity"></p>
+            </section>
+            <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+              <p class="text-center" id="pressure"></p>
+            </section>
+            <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+              <p class="text-center" id="windSpeed"></p>
+            </section>
+            <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+              <p class="text-center" id="countryCode"></p>
+            </section>
+            <section class="m-2 h-20 w-20 bg-[#242424] rounded-xl">
+              <p class="text-center" id="rainVolume"></p>
+            </section>
+          </div>
+          <script>
+            let showMore = document.getElementById("showMore");
+            let moreInfo = document.getElementById("moreInfo");
+            showMore.addEventListener("click", function () {
+              showMore.classList.add("hidden");
+              moreInfo.classList.remove("hidden");
+            });
+          </script>
+        </div>
+        <div>
+          <button id="getDogButton">кто хороший мальчик?</button>
+
+          <div id="dogImageContainer" class="h-96 w-96 hidden"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      async function getWeatherData() {
+        const CITY = document.getElementById("cityInput").value;
+        try {
+          const response = await fetch(
+            `http://localhost:3000/get-weather?city=${CITY}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "Allow-Access-Control-Origin": "*",
+              },
+            }
+          );
+          console.log("response", await response);
+          const data = await response.json();
+          console.log(data);
+          document.getElementById(
+            "icon"
+          ).src = `https://openweathermap.org/img/w/${data.weather[0].icon}.png`;
+
+          document.getElementById("city").textContent = data.name;
+          document.getElementById("temperature").textContent =
+            data.main.temp + "°C";
+          document.getElementById("description").textContent =
+            data.weather[0].description;
+          document.getElementById(
+            "coordinates"
+          ).textContent = `${data.coord.lat}, ${data.coord.lon}`;
+          document.getElementById("feelsLike").textContent =
+            data.main.feels_like + "°C";
+          document.getElementById("humidity").textContent =
+            "Влажность: " + data.main.humidity + "%";
+          document.getElementById("pressure").textContent =
+            "Давление: " + data.main.pressure + " hPa";
+          document.getElementById("windSpeed").textContent =
+            "Скорость ветра: " + data.wind.speed + " м/с";
+          document.getElementById("countryCode").textContent =
+            "Код страны: " + data.sys.country;
+          const rainResponse = await fetch(
+            `http://localhost:3000/get-rain?lat=${data.coord.lat}&lon=${data.coord.lon}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "Allow-Access-Control-Origin": "*",
+              },
+            }
+          );
+          const rainData = await rainResponse.json();
+          console.log(rainData);
+          const precipitationData = rainData.timelines[0].intervals;
+          document.getElementById("rainVolume").textContent =
+            "Дождь за последние 3 часа: " + rainVolume + " мм";
+        } catch (error) {
+          console.error("Error fetching weather data:", error);
+        }
+      }
+
+      const getDogButton = document.getElementById("getDogButton");
+      const dogImageContainer = document.getElementById("dogImageContainer");
+
+      getDogButton.addEventListener("click", async () => {
+        try {
+          const response = await fetch(
+            "https://dog.ceo/api/breeds/image/random"
+          );
+          const data = await response.json();
+          const imageUrl = data.message;
+
+          const image = document.createElement("img");
+          image.src = imageUrl;
+          image.alt = "Случайный песик";
+
+          dogImageContainer.innerHTML = "";
+          dogImageContainer.appendChild(image);
+          dogImageContainer.classList.remove("hidden");
+        } catch (error) {
+          console.error(
+            "Произошла ошибка при получении изображения песика:",
+            error
+          );
+        }
+      });
+    </script>
+    <script src="main.js" defer></script>
+    <footer class="fixed bottom-0 bg-white text-black font-bold w-screen">
+      Vadim Valov SE-2203
+    </footer>
+  </body>
+</html>
